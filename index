@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Викторина: Ё-ловушки!</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        #app-container {
+            background-color: white;
+            max-width: 600px;
+            width: 100%;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            padding: 30px;
+            text-align: center;
+            position: relative;
+        }
+        h1 {
+            color: #ff6b6b;
+            font-size: 28px;
+            margin-bottom: 10px;
+            margin-top: 5px;
+        }
+        p {
+            font-size: 18px;
+            line-height: 1.5;
+        }
+        .btn {
+            background-color: #4ecdc4;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+            margin: 10px;
+            font-family: inherit;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn:hover {
+            transform: translateY(-3px);
+            background-color: #45b7aa;
+        }
+        .btn-option {
+            display: block;
+            width: 100%;
+            margin: 15px 0;
+            background-color: #ffb142;
+        }
+        .btn-option:hover {
+            background-color: #fa983a;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+        #question-text {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            padding: 20px;
+            background-color: #f7f1e3;
+            border-radius: 15px;
+        }
+        .feedback-box {
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+        .correct-box {
+            background-color: #d4edda;
+            color: #155724;
+            border: 2px solid #c3e6cb;
+        }
+        .wrong-box {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 2px solid #f5c6cb;
+        }
+        #progress {
+            color: #7f8c8d;
+            font-size: 16px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        .footer-info {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 13px;
+            color: #95a5a6;
+            line-height: 1.4;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .emoji {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        
+        /* Стили для большой пульсирующей буквы Ё */
+        .big-yo {
+            font-size: 100px;
+            font-weight: bold;
+            color: #ff6b6b;
+            margin-bottom: -15px;
+            display: inline-block;
+            animation: pulsate 1.5s ease-out infinite;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        @keyframes pulsate {
+            0% { transform: scale(1); opacity: 0.9; }
+            50% { transform: scale(1.1); opacity: 1; color: #ff4757; }
+            100% { transform: scale(1); opacity: 0.9; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <div id="start-screen" class="screen active">
+        <div class="big-yo">Ё</div>
+        <div class="emoji">🕵️‍♀️</div>
+        <h1>Ё-ловушки!<br>Куда пропали точки?</h1>
+        <p>Готовы проверить свою внимательность? Помогите спасти слова, иначе всё-всё перепутается!</p>
+        <button class="btn" onclick="startQuiz()">Начать игру!</button>
+    </div>
+
+    <div id="question-screen" class="screen">
+        <div id="progress">Вопрос 1 из 8</div>
+        <div id="question-text">Вопрос загружается...</div>
+        <div id="options-container">
+            </div>
+    </div>
+
+    <div id="feedback-screen" class="screen">
+        <div id="feedback-emoji" class="emoji"></div>
+        <h2 id="feedback-title"></h2>
+        <div id="feedback-box" class="feedback-box">
+            <p id="feedback-text"></p>
+        </div>
+        <button class="btn" onclick="nextQuestion()">Дальше ➡️</button>
+    </div>
+
+    <div id="result-screen" class="screen">
+        <div class="emoji">👑🎉</div>
+        <h1>Поздравляем!</h1>
+        <p>Вы завершили викторину!</p>
+        <p id="final-score" style="font-size: 24px; font-weight: bold; color: #ff6b6b;"></p>
+        <p>Вы стали настоящими спасателями буквы Ё! Теперь вы точно знаете, как важны эти две маленькие точки, и никогда не попадётесь в словарные ловушки.</p>
+        <button class="btn" onclick="restartQuiz()">Сыграть ещё раз</button>
+    </div>
+
+    <div class="footer-info">
+        Свободный образовательный проект З. Алины и С. Эсмиры<br>под руководством Ивановой Н.А.
+    </div>
+
+</div>
+
+<script>
+    const questions = [
+        {
+            question: "В новостях передали радостный прогноз погоды: «Город Казань скоро ______ от морозов!»",
+            options: ["передохнет", "передохнёт"],
+            correct: "передохнёт",
+            explanation: "Буква «Ё» спасает город! Это слово означает «немного отдохнуть». А вот без точек получается массовая гибель от холода — очень пугающий прогноз!"
+        },
+        {
+            question: "Врач-стоматолог осмотрел пациента и сказал: «Откройте рот пошире, у вас воспалилось ______».",
+            options: ["небо", "нёбо"],
+            correct: "нёбо",
+            explanation: "Нёбо — это верхняя часть полости рта. Если выбрать вариант «небо», получится, что у пациента во рту поместились облака, солнце и пролетающие птицы!"
+        },
+        {
+            question: "Дворник Василий Степанович взял большую метлу и всё утро ______ двор.",
+            options: ["мел", "мёл"],
+            correct: "мёл",
+            explanation: "«Мёл» — это действие с метлой. Если выбрать букву «Е», то взрослый дворник превратится в белый известняк, которым дети рисуют классики на асфальте."
+        },
+        {
+            question: "Мама посмотрела на пустой кувшин из-под компота и ахнула: «Дети, вы выпили ______?!»",
+            options: ["все", "всё"],
+            correct: "всё",
+            explanation: "Мама спрашивает про всё содержимое кувшина. Если она скажет это без точек, получится, что дети выпили самих себя, маму и соседей в придачу!"
+        },
+        {
+            question: "Мой пушистый кот Мурзик испугался соседской собаки, залез на самое высокое дерево и так и не ______.",
+            options: ["слез", "слёз"],
+            correct: "слез",
+            explanation: "Глагол «слез» означает, что кот не спустился вниз. А вот «слёзы» мы проливаем, когда плачем. Кот не может состоять из соленой воды!"
+        },
+        {
+            question: "Завтра на школьном концерте мы выйдем на сцену и громко ______ новую песню.",
+            options: ["поем", "поём"],
+            correct: "поём",
+            explanation: "Песню исполняют голосом — поют. Если выбрать букву «Е», то песню придется подавать на обед вместе с супом и жевать ноты!"
+        },
+        {
+            question: "Модница Маша надела на голову красивый красный ______.",
+            options: ["берет", "берёт"],
+            correct: "берет",
+            explanation: "Берет — это мягкая шапочка. А если поставить точки, вещь исчезнет и превратится в глагол! Нельзя надеть на голову действие «берёт»."
+        },
+        {
+            question: "Мы шли по лесу, и вдруг на узкой тропинке прямо перед нами упрямо встал ______.",
+            options: ["осел", "осёл"],
+            correct: "осёл",
+            explanation: "На тропинке встало упрямое животное с длинными ушами. Без точек получится, что кто-то невидимый просто «осел» (упал, опустился) на землю перед вами."
+        }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+
+    function showScreen(screenId) {
+        document.querySelectorAll('.screen').forEach(screen => {
+            screen.classList.remove('active');
+        });
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    function startQuiz() {
+        currentQuestionIndex = 0;
+        score = 0;
+        loadQuestion();
+        showScreen('question-screen');
+    }
+
+    function loadQuestion() {
+        const q = questions[currentQuestionIndex];
+        document.getElementById('progress').innerText = `Вопрос ${currentQuestionIndex + 1} из ${questions.length}`;
+        document.getElementById('question-text').innerText = q.question;
+        
+        const optionsContainer = document.getElementById('options-container');
+        optionsContainer.innerHTML = '';
+        
+        const shuffledOptions = [...q.options].sort(() => Math.random() - 0.5);
+
+        shuffledOptions.forEach(option => {
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-option';
+            btn.innerText = option;
+            btn.onclick = () => checkAnswer(option);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    function checkAnswer(selectedOption) {
+        const q = questions[currentQuestionIndex];
+        const isCorrect = (selectedOption === q.correct);
+        
+        const feedbackBox = document.getElementById('feedback-box');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackEmoji = document.getElementById('feedback-emoji');
+        
+        if (isCorrect) {
+            score++;
+            feedbackBox.className = 'feedback-box correct-box';
+            feedbackTitle.innerText = "Верно!";
+            feedbackTitle.style.color = "#155724";
+            feedbackEmoji.innerText = "✅";
+        } else {
+            feedbackBox.className = 'feedback-box wrong-box';
+            feedbackTitle.innerText = "Ой-ой, ловушка захлопнулась!";
+            feedbackTitle.style.color = "#721c24";
+            feedbackEmoji.innerText = "❌";
+        }
+        
+        document.getElementById('feedback-text').innerText = q.explanation;
+        showScreen('feedback-screen');
+    }
+
+    function nextQuestion() {
+        currentQuestionIndex++;
+        if (currentQuestionIndex < questions.length) {
+            loadQuestion();
+            showScreen('question-screen');
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('final-score').innerText = `Ваш результат: ${score} из ${questions.length}`;
+        showScreen('result-screen');
+    }
+
+    function restartQuiz() {
+        startQuiz();
+    }
+</script>
+
+</body>
+</html>
